@@ -1,0 +1,19 @@
+name: Scheduled workflow heartbeat
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+      timezone: "Etc/UTC"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record scheduler heartbeat
+        run: |
+          echo "UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Trigger: ${{ github.event_name }}"
