@@ -3,6 +3,7 @@ name: Refresh and deploy TTB COLA viewer
 on:
   schedule:
     - cron: "23 5 * * *"
+      timezone: "Etc/UTC"
   workflow_dispatch:
 
 permissions:
