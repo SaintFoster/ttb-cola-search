@@ -982,11 +982,8 @@ def run() -> int:
     configure_logging()
     settings = Settings()
 
-    # TTB's public COLA site is currently accessed with certificate verification
-    # disabled by the existing workflow. Keep that behavior, but suppress urllib3's
-    # warning so normal progress output remains readable.
-    verify = False
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    # Keep Requests' default certificate validation enabled for all TTB traffic.
+    verify = True
 
     session = create_session()
     try:
