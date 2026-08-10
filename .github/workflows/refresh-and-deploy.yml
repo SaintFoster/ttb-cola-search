@@ -2,7 +2,7 @@ name: Refresh and deploy TTB COLA viewer
 
 on:
   schedule:
-    - cron: "5 20 * * *"
+    - cron: "17 */4 * * *"
       timezone: "Etc/UTC"
   workflow_dispatch:
 
@@ -18,38 +18,59 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    outputs:
+      should_refresh: ${{ steps.daily_gate.outputs.should_refresh }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check daily refresh gate
+        id: daily_gate
+        run: |
+          today="$(date -u +%F)"
+          if [ -f .refresh-state ] && grep -Fxq "$today" .refresh-state; then
+            echo "should_refresh=false" >> "$GITHUB_OUTPUT"
+            echo "A refresh already succeeded on $today; skipping this retry."
+          else
+            echo "should_refresh=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-python@v5
+        if: fromJSON(steps.daily_gate.outputs.should_refresh)
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
+        if: fromJSON(steps.daily_gate.outputs.should_refresh)
         run: pip install -r requirements.txt
 
       - name: Refresh TTB COLA records
+        if: fromJSON(steps.daily_gate.outputs.should_refresh)
         run: python ttb_cola_search.py
 
       - name: Commit refreshed data
+        if: fromJSON(steps.daily_gate.outputs.should_refresh)
         run: |
+          date -u +%F > .refresh-state
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ttb_cola_results.csv ttb_cola_results_invalid.csv ttb_cola_records_viewer.html ttb_cola_ttb_ids.js
+          git add .refresh-state ttb_cola_results.csv ttb_cola_results_invalid.csv ttb_cola_records_viewer.html ttb_cola_ttb_ids.js
           git diff --cached --quiet || git commit -m "Refresh TTB COLA data"
           git push
 
       - uses: actions/configure-pages@v5
+        if: fromJSON(steps.daily_gate.outputs.should_refresh)
         with:
           enablement: true
 
       - uses: actions/upload-pages-artifact@v3
+        if: fromJSON(steps.daily_gate.outputs.should_refresh)
         with:
           path: .
 
   deploy:
     needs: refresh
+    if: fromJSON(needs.refresh.outputs.should_refresh)
     runs-on: ubuntu-latest
     environment:
       name: github-pages
