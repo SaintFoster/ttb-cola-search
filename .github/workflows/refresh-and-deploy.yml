@@ -57,7 +57,7 @@ jobs:
           date -u +%F > .refresh-state
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .refresh-state ttb_cola_results.csv ttb_cola_results_invalid.csv ttb_cola_records_viewer.html ttb_cola_ttb_ids.js
+          git add .refresh-state ttb_cola_results.csv ttb_cola_results_invalid.csv ttb_cola_records_viewer.html ttb_cola_records.json ttb_cola_ttb_ids.js
           git diff --cached --quiet || git commit -m "Refresh TTB COLA data"
           git push
 
