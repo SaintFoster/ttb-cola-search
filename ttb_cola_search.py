@@ -17,6 +17,7 @@ import json
 import logging
 import re
 import sys
+import tempfile
 import webbrowser
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -25,7 +26,6 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import requests
-import urllib3
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
@@ -35,6 +35,7 @@ BASE_URL = "https://ttbonline.gov/colasonline/"
 WORKSPACE_DIR = Path(__file__).resolve().parent
 DEFAULT_OUTPUT = WORKSPACE_DIR / "ttb_cola_results.csv"
 DEFAULT_VIEWER = WORKSPACE_DIR / "ttb_cola_records_viewer.html"
+TTB_INTERMEDIATE_CERT = WORKSPACE_DIR / "certs" / "entrust-ov-tls-issuing-rsa-ca-2.pem"
 
 SEARCH_PAGE_URL = urljoin(BASE_URL, "publicSearchColasAdvanced.do")
 EXPORT_URL = urljoin(
@@ -971,9 +972,22 @@ def update_repository(
 
 
 def create_session() -> requests.Session:
-    """Create a configured HTTP session for TTB requests."""
+    """Create a TTB session with the normal public roots plus its missing issuer."""
+    if not TTB_INTERMEDIATE_CERT.is_file():
+        raise RuntimeError(f"Missing TTB issuer certificate: {TTB_INTERMEDIATE_CERT}")
+
+    # TTB currently omits this intermediate certificate from its TLS handshake.
+    # Preserve Requests' full public trust store and append only that issuer.
+    with tempfile.NamedTemporaryFile(
+        mode="wb", prefix="ttb-cola-ca-", suffix=".pem", delete=False
+    ) as bundle:
+        bundle.write(Path(requests.certs.where()).read_bytes())
+        bundle.write(b"\n")
+        bundle.write(TTB_INTERMEDIATE_CERT.read_bytes())
+
     session = requests.Session()
     session.headers.update(HEADERS)
+    session.verify = bundle.name
     return session
 
 
@@ -982,10 +996,9 @@ def run() -> int:
     configure_logging()
     settings = Settings()
 
-    # Keep Requests' default certificate validation enabled for all TTB traffic.
-    verify = True
-
+    # Use the per-session bundle: Requests' normal roots plus TTB's missing issuer.
     session = create_session()
+    verify = session.verify
     try:
         page_response = session.get(
             SEARCH_PAGE_URL,
