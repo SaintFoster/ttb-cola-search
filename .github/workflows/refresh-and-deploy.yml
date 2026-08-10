@@ -27,10 +27,10 @@ jobs:
         id: daily_gate
         run: |
           today="$(date -u +%F)"
-          if [ "" = "workflow_dispatch" ]; then
-            echo "should_refresh=true" >> ""
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "should_refresh=true" >> "$GITHUB_OUTPUT"
             echo "Manual refresh requested; bypassing the daily gate."
-          elif [ -f .refresh-state ] && grep -Fxq "" .refresh-state; then
+          elif [ -f .refresh-state ] && grep -Fxq "$today" .refresh-state; then
             echo "should_refresh=false" >> "$GITHUB_OUTPUT"
             echo "A refresh already succeeded on $today; skipping this retry."
           else
