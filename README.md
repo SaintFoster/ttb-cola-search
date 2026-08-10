@@ -34,9 +34,13 @@ The script refreshes the CSV, rebuilds `ttb_cola_records_viewer.html`, and updat
 
 | File | Purpose |
 | --- | --- |
-| `ttb_cola_search.py` | Fetches, validates, deduplicates, and writes the repository data. |
+| `ttb_cola_search.py` | Coordinates the refresh workflow. |
+| `ttb_cola_ttb.py` | TTB form handling, requests, and TLS trust configuration. |
+| `ttb_cola_data.py` | CSV validation, repair, deduplication, and rolling-window data logic. |
+| `ttb_cola_viewer.py` | Viewer-data and asset generation. |
 | `ttb_cola_results.csv` | Current records used by the viewer. |
-| `ttb_cola_records_viewer.html` | Standalone static viewer published through GitHub Pages. |
+| `ttb_cola_records_viewer.html` | Lightweight static viewer published through GitHub Pages. |
+| `ttb_cola_records.json` | External viewer dataset, loaded by the viewer and cached separately. |
 | `.github/workflows/refresh-and-deploy.yml` | Scheduled refresh and Pages deployment. |
 
 ## License
