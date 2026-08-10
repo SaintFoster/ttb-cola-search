@@ -236,7 +236,7 @@
   <script>
 (async () => {
   const response = await fetch('ttb_cola_records.json');
-  if (!response.ok) throw new Error(`Could not load viewer data: `);
+  if (!response.ok) throw new Error(`Could not load viewer data: ${response.status}`);
   const data = await response.json();
   const canvas = document.getElementById('plot');
   const ctx = canvas.getContext('2d');
@@ -280,7 +280,7 @@
     `<option value="${escapeAttr(column)}">${escapeHtml(column)}</option>`
   ).join('');
   if (data.columns.includes('Brand Name')) columnSelect.value = 'Brand Name';
-  const updatedAt = new Date(data.generatedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short", timeZoneName: "short" });
+  const updatedAt = new Date(data.generatedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
   const newest = data.newestCompletedDate ? ` | Latest completed record: ${data.newestCompletedDate}` : "";
   meta.textContent = `${data.rowCount.toLocaleString()} rows | ${data.columns.length} columns | Updated ${updatedAt}${newest}`;
 
