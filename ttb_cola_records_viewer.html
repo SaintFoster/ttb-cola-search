@@ -259,7 +259,7 @@
   const previousRecordPage = document.getElementById('previousRecordPage');
   const nextRecordPage = document.getElementById('nextRecordPage');
   const recordSortButtons = [...document.querySelectorAll('.record-sort')];
-  const ttbIds = window.TTB_COLA_IDS || [];
+  const ttbIds = data.ttbIds || [];
   const detailUrl = 'https://www.ttbonline.gov/colasonline/viewColaDetails.do?action=publicFormDisplay&ttbid=';
   const cleanTtbId = value => String(value || '').trim().replace(/^['"]+|['"]+$/g, '');
   const recordPageSize = 100;

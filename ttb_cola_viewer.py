@@ -20,6 +20,7 @@ def refresh_viewer(csv_path: Path, viewer_path: Path) -> None:
         "rowCount": len(rows),
         "columns": columns,
         "rows": rows,
+        "ttbIds": ids,
         "generatedAt": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "newestCompletedDate": newest_completed,
     }
